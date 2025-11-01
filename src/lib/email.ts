@@ -1,5 +1,4 @@
 import nodemailer from 'nodemailer'
-import { MailtrapTransport } from 'mailtrap'
 
 interface SendEmailOptions {
   to: string
@@ -29,7 +28,7 @@ function formatEmailAddress(email: string, name?: string): string {
 
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
   // Check if email is configured
-  if (!process.env.MAILTRAP_TOKEN && !process.env.SMTP_HOST) {
+  if (!process.env.SMTP_HOST) {
     console.warn('Email not configured. Email will not be sent.')
     console.log('To configure email, see FREE_EMAIL_SETUP.md for free options like Mailtrap, Ethereal Email, or MailHog')
     return { success: false, messageId: null, error: 'Email not configured' }
@@ -55,33 +54,20 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
     fromAddress = formatEmailAddress('noreply@localhost', fromName)
   }
 
-  let transporter: nodemailer.Transporter
-
-  // Use Mailtrap API transport if token is available
-  if (process.env.MAILTRAP_TOKEN) {
-    transporter = nodemailer.createTransport(
-      MailtrapTransport({
-        token: process.env.MAILTRAP_TOKEN,
-      })
-    )
-  } else if (process.env.SMTP_HOST) {
-    // Use SMTP transport
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: process.env.SMTP_USER && process.env.SMTP_PASSWORD ? {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      } : undefined,
-      // Additional options for various providers
-      tls: {
-        rejectUnauthorized: false,
-      },
-    })
-  } else {
-    throw new Error('No email transport configured')
-  }
+  // Use SMTP transport
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: process.env.SMTP_USER && process.env.SMTP_PASSWORD ? {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
+    } : undefined,
+    // Additional options for various providers
+    tls: {
+      rejectUnauthorized: false,
+    },
+  })
 
   // Send email
   try {
