@@ -3,9 +3,11 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
+import { useAlert } from '@/hooks/useAlert'
 
 function SetupPasswordContent() {
   const router = useRouter()
+  const alert = useAlert()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
@@ -84,7 +86,7 @@ function SetupPasswordContent() {
       const data = await response.json()
 
       if (response.ok) {
-        alert('Password set successfully! You can now log in.')
+        alert.success('Password set successfully! You can now log in.')
         router.push('/auth/login')
       } else {
         setError(data.error || 'Failed to set password')

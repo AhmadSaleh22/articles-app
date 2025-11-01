@@ -14,6 +14,7 @@ import { Video } from './VideoExtension'
 import { Audio } from './AudioExtension'
 import { MenuBar } from './MenuBar'
 import { useCallback } from 'react'
+import { useAlertStore } from '@/store/useAlertStore'
 
 interface RichTextEditorProps {
   content: string
@@ -98,13 +99,13 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         if (!response.ok) {
           // Handle specific error cases
           if (response.status === 401) {
-            alert('Please log in to upload files.')
+            useAlertStore.getState().error('Please log in to upload files.')
           } else if (response.status === 429) {
-            alert('Too many uploads. Please try again later.')
+            useAlertStore.getState().error('Too many uploads. Please try again later.')
           } else if (response.status === 413) {
-            alert(data.error || 'File is too large. Maximum size is 50MB.')
+            useAlertStore.getState().error(data.error || 'File is too large. Maximum size is 50MB.')
           } else {
-            alert(data.error || 'Upload failed')
+            useAlertStore.getState().error(data.error || 'Upload failed')
           }
           return
         }
@@ -120,7 +121,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         }
       } catch (error) {
         console.error('Error uploading file:', error)
-        alert('Failed to upload file. Please try again.')
+        useAlertStore.getState().error('Failed to upload file. Please try again.')
       }
     },
     [editor]

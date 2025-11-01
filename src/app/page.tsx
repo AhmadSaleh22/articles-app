@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { ArticleViewer } from '@/components/editor/ArticleViewer'
 import { Plus, Edit2, Trash2, Eye, FileText, ArrowLeft, Folder, FolderOpen, ChevronDown, ChevronRight, FolderPlus, BookOpen, Send, Save, X, Newspaper } from 'lucide-react'
+import { useAlert } from '@/hooks/useAlert'
 
 interface Topic {
   id: string
@@ -26,6 +27,7 @@ interface Article {
 }
 
 export default function Dashboard() {
+  const alert = useAlert()
   const [topics, setTopics] = useState<Topic[]>([])
   const [uncategorizedArticles, setUncategorizedArticles] = useState<Article[]>([])
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set())
@@ -101,7 +103,16 @@ export default function Dashboard() {
   }
 
   const handleDeleteTopic = async (topicId: string) => {
-    if (!confirm('Are you sure you want to delete this topic? Articles will become uncategorized.')) return
+    const confirmed = await alert.confirm({
+      title: 'Delete Topic?',
+      message: 'Are you sure you want to delete this topic? Articles will become uncategorized.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: () => {},
+      onCancel: () => {}
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(`/api/topics/${topicId}`, {
@@ -153,7 +164,7 @@ export default function Dashboard() {
         })
         if (response.ok) {
           await fetchTopicsAndArticles()
-          alert('Article updated successfully!')
+          alert.success('Article updated successfully!')
         }
       } else {
         // Create new article
@@ -168,17 +179,26 @@ export default function Dashboard() {
           setTitle('')
           setContent('')
           setSelectedTopicId(null)
-          alert('Article created successfully!')
+          alert.success('Article created successfully!')
         }
       }
     } catch (error) {
       console.error('Error saving article:', error)
-      alert('Failed to save article')
+      alert.error('Failed to save article')
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this article?')) return
+    const confirmed = await alert.confirm({
+      title: 'Delete Article?',
+      message: 'Are you sure you want to delete this article? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: () => {},
+      onCancel: () => {}
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(`/api/articles/${id}`, {
@@ -190,11 +210,11 @@ export default function Dashboard() {
           setSelectedArticle(null)
           setIsCreating(false)
         }
-        alert('Article deleted successfully!')
+        alert.success('Article deleted successfully!')
       }
     } catch (error) {
       console.error('Error deleting article:', error)
-      alert('Failed to delete article')
+      alert.error('Failed to delete article')
     }
   }
 
@@ -207,11 +227,11 @@ export default function Dashboard() {
       })
       if (response.ok) {
         await fetchTopicsAndArticles()
-        alert('Article published successfully!')
+        alert.success('Article published successfully!')
       }
     } catch (error) {
       console.error('Error publishing article:', error)
-      alert('Failed to publish article')
+      alert.error('Failed to publish article')
     }
   }
 

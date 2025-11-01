@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, Briefcase } from 'lucide-react'
+import { useAlert } from '@/hooks/useAlert'
 
 interface ProjectType {
   id: string
@@ -12,6 +13,7 @@ interface ProjectType {
 }
 
 export default function AdminProjectTypesPage() {
+  const alert = useAlert()
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -72,19 +74,28 @@ export default function AdminProjectTypesPage() {
       if (response.ok) {
         await fetchProjectTypes()
         handleCloseModal()
-        alert('Project type created successfully!')
+        alert.success('Project type created successfully!')
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to create project type')
+        alert.error(data.error || 'Failed to create project type')
       }
     } catch (error) {
       console.error('Error creating project type:', error)
-      alert('An error occurred')
+      alert.error('An error occurred')
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this project type?')) return
+    const confirmed = await alert.confirm({
+      title: 'Delete Project Type?',
+      message: 'Are you sure you want to delete this project type? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: () => {},
+      onCancel: () => {}
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(`/api/project-types/${id}`, {
@@ -93,11 +104,11 @@ export default function AdminProjectTypesPage() {
 
       if (response.ok) {
         await fetchProjectTypes()
-        alert('Project type deleted successfully!')
+        alert.success('Project type deleted successfully!')
       }
     } catch (error) {
       console.error('Error deleting project type:', error)
-      alert('Failed to delete project type')
+      alert.error('Failed to delete project type')
     }
   }
 

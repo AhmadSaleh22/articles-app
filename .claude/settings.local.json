@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFix dependency conflict for Vercel deployment\n\n- Removed mailtrap package dependency\n- Updated email.ts to use only SMTP transport (no MailtrapTransport)\n- Resolved @types/nodemailer version conflict\n- Build now succeeds without peer dependency errors\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(vercel --prod --yes:*)",
+      "Bash(npx prisma:*)",
+      "Bash(git commit:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_9XpbN2ZjonMQ@ep-summer-block-a4nhlof0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_9XpbN2ZjonMQ@ep-summer-block-a4nhlof0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx prisma generate:*)",
+      "Bash(cat:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel domains add:*)",
+      "Bash(vercel domains:*)",
+      "Bash(vercel project:*)"
     ],
     "deny": [],
     "ask": []

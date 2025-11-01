@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Mail, Phone, Briefcase, MessageSquare, Facebook as FacebookIcon, Twitter, Instagram, Linkedin, Link2, Plus, X, Calendar, Clock } from 'lucide-react'
+import { useAlert } from '@/hooks/useAlert'
 
 interface ProjectType {
   id: string
@@ -21,6 +22,7 @@ interface AvailabilitySlot {
 
 export default function RegisterPage() {
   const router = useRouter()
+  const alert = useAlert()
   const [loading, setLoading] = useState(false)
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>([])
   const [otherLinksInput, setOtherLinksInput] = useState('')
@@ -134,16 +136,16 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
-        alert(
+        alert.success(
           'Registration successful! Please check your email to complete your setup.'
         )
         router.push('/auth/registration-success')
       } else {
-        alert(data.error || 'Registration failed')
+        alert.error(data.error || 'Registration failed')
       }
     } catch (error) {
       console.error('Error during registration:', error)
-      alert('An error occurred during registration')
+      alert.error('An error occurred during registration')
     } finally {
       setLoading(false)
     }
