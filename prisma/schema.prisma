@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Topic {
+  id        String    @id @default(uuid())
+  name      String
+  icon      String?   // Optional emoji or icon
+  color     String?   // Optional color for the folder
+  order     Int       @default(0) // For sorting
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  articles  Article[]
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   // JSON string containing the Tiptap editor content
+  coverImage  String?
+  status      String   @default("draft") // draft, published
+  topicId     String?  // Optional topic/folder assignment
+  topic       Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  order       Int      @default(0) // For sorting within a topic
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  filename  String
+  filepath  String
+  mimetype  String
+  size      Int
+  type      String   // image, video, audio
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id                String              @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String              @unique
+  phoneNumber       String
+  experienceField   String
+  aboutYourself     String?             // Text area
+  password          String?             // Null until they complete registration via email link
+  isVerified        Boolean             @default(false)
+  role              String              @default("user") // user, admin
+
+  // Social media accounts
+  facebook          String?
+  twitter           String?
+  instagram         String?
+  linkedin          String?
+  otherLinks        String?             // JSON array of additional links
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  projectTypes      UserProjectType[]
+  availability      Availability[]
+  verificationTokens VerificationToken[]
+  media             Media[]
+}
+
+model ProjectType {
+  id          String            @id @default(uuid())
+  name        String            @unique
+  description String?
+  isActive    Boolean           @default(true)
+  order       Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  users       UserProjectType[]
+}
+
+model UserProjectType {
+  id            String      @id @default(uuid())
+  userId        String
+  projectTypeId String
+  createdAt     DateTime    @default(now())
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectType   ProjectType @relation(fields: [projectTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectTypeId])
+}
+
+model Availability {
+  id          String   @id @default(uuid())
+  userId      String
+  startDate   DateTime
+  endDate     DateTime
+  startTime   String   // Format: "HH:MM"
+  endTime     String   // Format: "HH:MM"
+  dayOfWeek   String?  // Optional: specific day (Monday, Tuesday, etc.)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  type        String   // "registration", "password_reset"
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
