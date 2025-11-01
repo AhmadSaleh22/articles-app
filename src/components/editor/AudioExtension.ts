@@ -32,12 +32,12 @@ export const Audio = Node.create({
     return {
       setAudio:
         (options: { src: string }) =>
-        ({ commands }) => {
+        ({ commands }: any) => {
           return commands.insertContent({
             type: this.name,
             attrs: options,
           })
         },
-    }
+    } as any
   },
 })

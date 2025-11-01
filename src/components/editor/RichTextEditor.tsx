@@ -113,9 +113,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           if (type === 'image') {
             editor.chain().focus().setImage({ src: data.url }).run()
           } else if (type === 'video') {
-            editor.chain().focus().setVideo({ src: data.url }).run()
+            (editor.chain().focus() as any).setVideo({ src: data.url }).run()
           } else if (type === 'audio') {
-            editor.chain().focus().setAudio({ src: data.url }).run()
+            (editor.chain().focus() as any).setAudio({ src: data.url }).run()
           }
         }
       } catch (error) {

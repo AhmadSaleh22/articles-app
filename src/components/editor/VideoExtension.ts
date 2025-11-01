@@ -35,12 +35,12 @@ export const Video = Node.create({
     return {
       setVideo:
         (options: { src: string }) =>
-        ({ commands }) => {
+        ({ commands }: any) => {
           return commands.insertContent({
             type: this.name,
             attrs: options,
           })
         },
-    }
+    } as any
   },
 })
