@@ -3,28 +3,22 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react'
 import Link from 'next/link'
+import { LoginForm } from '@/components/auth'
 
-export default function LoginPage() {
+export default function Login() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (data: { email: string; password: string; rememberMe: boolean }) => {
     setError('')
     setLoading(true)
 
     try {
       const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
+        email: data.email,
+        password: data.password,
         redirect: false,
       })
 
@@ -42,93 +36,82 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <div className="text-center mb-8">
-          <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <LogIn className="text-white" size={32} />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your account</p>
-        </div>
+    <div className="min-h-screen bg-neutral-900 relative overflow-hidden">
+      {/* Hexagonal Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hexagons" x="0" y="0" width="84" height="72" patternUnits="userSpaceOnUse">
+              <path
+                d="M21 0l21 12v24L21 48 0 36V12L21 0zm42 0l21 12v24L63 48 42 36V12L63 0z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hexagons)" />
+        </svg>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+      {/* Background Gradient */}
+      <div className="fixed inset-0 bg-gradient-to-b from-black via-neutral-900 to-black -z-10" />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="your@email.com"
-              />
+      {/* Content */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-14 h-7 relative">
+                <svg
+                  viewBox="0 0 57 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full"
+                >
+                  <path
+                    d="M0 14L7 0L14 7V21L7 28L0 21V7Z"
+                    fill="#C9A96E"
+                  />
+                  <path
+                    d="M21.5 14L28.5 0L35.5 7V21L28.5 28L21.5 21V7Z"
+                    fill="#C9A96E"
+                  />
+                  <path
+                    d="M43 14L50 0L57 7V21L50 28L43 21V7Z"
+                    fill="#C9A96E"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
+            {/* Title */}
+            <h1 className="text-3xl font-medium text-white mb-4">
+              Welcome back!
+            </h1>
+
+            {/* Description */}
+            <p className="text-neutral-400 leading-relaxed">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit nulla vel
+              consequat arcu, vel vestibulum nibh.
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
+          {/* Login Form */}
+          <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Don't have an account?{' '}
+          {/* Footer Link */}
+          <div className="text-center mt-8">
+            <span className="text-sm text-neutral-400">Back to </span>
             <Link
-              href="/auth/register"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
+              href="/"
+              className="text-sm text-[#C9A96E] hover:underline"
             >
-              Register here
+              Home page
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>

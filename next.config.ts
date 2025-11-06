@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
     '/api/**/*': ['./node_modules/.prisma/client/**/*'],
     '/*': ['./node_modules/.prisma/client/**/*'],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '500mb',
+    },
+  },
 };
 
 export default nextConfig;

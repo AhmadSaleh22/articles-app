@@ -21,7 +21,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/',
+    '/profile/:path*',
     // Add other protected routes here
     // '/admin/:path*', // Uncomment to protect all admin routes
   ],

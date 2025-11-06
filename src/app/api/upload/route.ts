@@ -3,49 +3,35 @@ import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limiter'
+import { authOptions } from '@/lib/auth'
 
-// Maximum file size: 50MB
-const MAX_FILE_SIZE = 50 * 1024 * 1024
+// Route segment config for larger file uploads
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-// Rate limit: 20 uploads per 15 minutes per user
-const RATE_LIMIT_CONFIG = {
-  maxRequests: 20,
-  windowMs: 15 * 60 * 1000, // 15 minutes
-}
+// Maximum file size: 500MB
+const MAX_FILE_SIZE = 500 * 1024 * 1024
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session || !session.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in to upload files.' },
         { status: 401 }
       )
     }
 
-    // Check rate limit (per user)
-    const rateLimitKey = `upload:${session.user.id}`
-    const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIG)
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
 
-    if (!rateLimit.allowed) {
-      const resetDate = new Date(rateLimit.resetTime)
+    if (!user) {
       return NextResponse.json(
-        {
-          error: 'Too many uploads. Please try again later.',
-          retryAfter: resetDate.toISOString(),
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': rateLimit.resetTime.toString(),
-            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
+        { error: 'User not found' },
+        { status: 404 }
       )
     }
 
@@ -82,8 +68,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create uploads directory outside public (more secure)
-    const uploadsDir = join(process.cwd(), 'uploads')
+    // Create uploads directory in public folder
+    const uploadsDir = join(process.cwd(), 'public', 'uploads')
     await mkdir(uploadsDir, { recursive: true })
 
     // Generate unique filename
@@ -96,36 +82,31 @@ export async function POST(request: NextRequest) {
     // Write file
     await writeFile(filepath, buffer)
 
+    // Public URL
+    const url = `/uploads/${filename}`
+
     // Save to database with user tracking
     const media = await prisma.media.create({
       data: {
         filename: file.name,
-        filepath: filename, // Store only filename, not full path
+        filepath: filename,
+        url: url,
         mimetype: file.type,
         size: file.size,
         type: mediaType,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
-    // Return media ID to be used with secure serving endpoint
-    return NextResponse.json(
-      {
-        id: media.id,
-        url: `/api/media/${media.id}`, // Use secure serving endpoint
-        filename: file.name,
-        type: mediaType,
-        mimetype: file.type,
-        size: file.size,
-      },
-      {
-        headers: {
-          'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
-          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
-          'X-RateLimit-Reset': rateLimit.resetTime.toString(),
-        },
-      }
-    )
+    // Return media info
+    return NextResponse.json({
+      id: media.id,
+      url: url,
+      filename: file.name,
+      type: mediaType,
+      mimetype: file.type,
+      size: file.size,
+    })
   } catch (error) {
     console.error('Error uploading file:', error)
     return NextResponse.json(
@@ -140,20 +121,28 @@ export async function GET() {
   try {
     // Check authentication
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session || !session.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in to view media.' },
         { status: 401 }
       )
     }
 
-    // Users can only see their own uploads, admins can see all
-    const whereClause = session.user.role === 'admin'
-      ? {}
-      : { userId: session.user.id }
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
 
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    // Get user's uploaded media
     const media = await prisma.media.findMany({
-      where: whereClause,
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     })
 
