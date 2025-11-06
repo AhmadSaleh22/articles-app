@@ -37,7 +37,8 @@
       "Bash(npm run dev:*)",
       "Bash(npm install react-honeycomb)",
       "Bash(npm install:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
