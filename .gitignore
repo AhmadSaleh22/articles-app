@@ -46,6 +46,7 @@ next-env.d.ts
 
 # uploads (contains user-uploaded media files)
 /uploads
+/public/uploads
 
 # database
 /prisma/*.db
