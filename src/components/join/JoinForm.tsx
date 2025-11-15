@@ -125,6 +125,60 @@ export function JoinForm({ onSubmit }: JoinFormProps) {
           />
         </div>
 
+        {/* Country / City */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-400 mb-2">
+              Country
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your country"
+              className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-[#C9A96E] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-400 mb-2">
+              City
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your city"
+              className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-[#C9A96E] transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Upload files */}
+        <div>
+          <label className="block text-sm font-medium text-neutral-400 mb-2">
+            Upload files
+          </label>
+          <div className="border-2 border-dashed border-neutral-700 rounded-lg p-8 text-center hover:border-[#C9A96E] transition-colors cursor-pointer">
+            <input
+              type="file"
+              id="files"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                // Handle file upload
+                console.log(e.target.files)
+              }}
+            />
+            <label htmlFor="files" className="cursor-pointer">
+              <div className="flex flex-col items-center gap-2">
+                <svg className="w-12 h-12 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <div className="text-neutral-400">
+                  <span className="text-[#C9A96E] font-medium">Click to upload</span> or drag and drop
+                </div>
+                <p className="text-xs text-neutral-500">Upload as many as you want</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
         {/* Share your social media accounts (Optional) */}
         <div>
           <label className="block text-sm font-medium text-neutral-400 mb-4">

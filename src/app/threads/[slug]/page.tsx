@@ -125,8 +125,8 @@ export default function ThreadPage({ params }: { params: Promise<{ slug: string 
         default:
           return null
       }
-    }).filter(Boolean)
-  }).filter(Boolean)
+    }).filter((block: any): block is NonNullable<typeof block> => block !== null)
+  }).filter((block: any): block is NonNullable<typeof block> => block !== null)
 
   // Calculate reading time
   const wordCount = parsedBlocks.reduce((acc: number, post: any) => {

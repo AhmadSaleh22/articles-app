@@ -123,7 +123,7 @@ export default function AudioPage({ params }: { params: Promise<{ slug: string }
       default:
         return null
     }
-  }).filter(Boolean)
+  }).filter((block): block is NonNullable<typeof block> => block !== null)
 
   // Calculate reading time
   const wordCount = parsedBlocks

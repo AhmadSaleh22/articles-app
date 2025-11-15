@@ -27,7 +27,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const content = await prisma.article.findUnique({
+    // Try to find in Article table first
+    let content = await prisma.article.findUnique({
       where: { id },
       select: {
         id: true,
@@ -40,6 +41,44 @@ export async function GET(
         updatedAt: true,
       },
     })
+
+    // If not found, try OpenCall table
+    if (!content) {
+      const openCall = await prisma.openCall.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          title: true,
+          heroImage: true,
+          content: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+      if (openCall) {
+        content = { ...openCall, type: 'open_call' }
+      }
+    }
+
+    // If still not found, try Trip table
+    if (!content) {
+      const trip = await prisma.trip.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          title: true,
+          heroImage: true,
+          content: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+      if (trip) {
+        content = { ...trip, type: 'trip' }
+      }
+    }
 
     if (!content) {
       return NextResponse.json({ error: 'Content not found' }, { status: 404 })
@@ -100,6 +139,57 @@ export async function POST(
     let slug = baseSlug
     let counter = 1
 
+    // Handle business content (OpenCall or Trip)
+    if (type === 'open_call') {
+      // Ensure slug is unique for OpenCall
+      while (await prisma.openCall.findUnique({ where: { slug } })) {
+        slug = `${baseSlug}-${counter}`
+        counter++
+      }
+
+      const openCall = await prisma.openCall.create({
+        data: {
+          title: title || 'Untitled',
+          slug,
+          description: title || 'Untitled', // Use title as description if not provided
+          content: contentJSON,
+          heroImage,
+          status: status || 'draft',
+        },
+      })
+
+      return NextResponse.json({
+        id: openCall.id,
+        message: 'Open call created successfully',
+      })
+    }
+
+    if (type === 'trip') {
+      // Ensure slug is unique for Trip
+      while (await prisma.trip.findUnique({ where: { slug } })) {
+        slug = `${baseSlug}-${counter}`
+        counter++
+      }
+
+      const trip = await prisma.trip.create({
+        data: {
+          title: title || 'Untitled',
+          slug,
+          description: title || 'Untitled', // Use title as description if not provided
+          content: contentJSON,
+          heroImage,
+          status: status || 'draft',
+          authorId: user.id,
+        },
+      })
+
+      return NextResponse.json({
+        id: trip.id,
+        message: 'Trip created successfully',
+      })
+    }
+
+    // Handle media content (Article)
     // Ensure slug is unique
     while (await prisma.article.findUnique({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`
@@ -147,7 +237,95 @@ export async function PUT(
     // Create content JSON from blocks
     const contentJSON = JSON.stringify({ blocks })
 
-    // Get current article to check if title changed
+    // Handle OpenCall update
+    if (type === 'open_call') {
+      const currentOpenCall = await prisma.openCall.findUnique({
+        where: { id },
+      })
+
+      if (!currentOpenCall) {
+        return NextResponse.json({ error: 'Open call not found' }, { status: 404 })
+      }
+
+      // Generate new slug if title changed
+      let slug = currentOpenCall.slug
+      if (title && title !== currentOpenCall.title) {
+        const baseSlug = generateSlug(title)
+        slug = baseSlug
+        let counter = 1
+
+        while (true) {
+          const existing = await prisma.openCall.findUnique({ where: { slug } })
+          if (!existing || existing.id === id) break
+          slug = `${baseSlug}-${counter}`
+          counter++
+        }
+      }
+
+      const openCall = await prisma.openCall.update({
+        where: { id },
+        data: {
+          title: title || 'Untitled',
+          slug,
+          description: title || 'Untitled',
+          heroImage,
+          content: contentJSON,
+          status: status || 'draft',
+          publishedAt: status === 'published' ? new Date() : currentOpenCall.publishedAt,
+        },
+      })
+
+      return NextResponse.json({
+        id: openCall.id,
+        message: 'Open call updated successfully',
+      })
+    }
+
+    // Handle Trip update
+    if (type === 'trip') {
+      const currentTrip = await prisma.trip.findUnique({
+        where: { id },
+      })
+
+      if (!currentTrip) {
+        return NextResponse.json({ error: 'Trip not found' }, { status: 404 })
+      }
+
+      // Generate new slug if title changed
+      let slug = currentTrip.slug
+      if (title && title !== currentTrip.title) {
+        const baseSlug = generateSlug(title)
+        slug = baseSlug
+        let counter = 1
+
+        while (true) {
+          const existing = await prisma.trip.findUnique({ where: { slug } })
+          if (!existing || existing.id === id) break
+          slug = `${baseSlug}-${counter}`
+          counter++
+        }
+      }
+
+      const trip = await prisma.trip.update({
+        where: { id },
+        data: {
+          title: title || 'Untitled',
+          slug,
+          description: title || 'Untitled',
+          heroImage,
+          content: contentJSON,
+          status: status || 'draft',
+          publishedAt: status === 'published' ? new Date() : currentTrip.publishedAt,
+        },
+      })
+
+      return NextResponse.json({
+        id: trip.id,
+        message: 'Trip updated successfully',
+      })
+    }
+
+    // Handle Article update
     const currentArticle = await prisma.article.findUnique({
       where: { id },
     })
@@ -163,7 +341,6 @@ export async function PUT(
       slug = baseSlug
       let counter = 1
 
-      // Ensure slug is unique (excluding current article)
       while (true) {
         const existing = await prisma.article.findUnique({ where: { slug } })
         if (!existing || existing.id === id) break

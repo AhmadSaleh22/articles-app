@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X, Grid3X3, UserPlus, Gift, Pencil } from 'lucide-react'
-import HoneycombGrid from '@/components/HoneycombGrid'
-import HexCard from '@/components/HexCard'
+import HoneycombGridSVG from '@/components/HoneycombGridSVG'
 
 interface Content {
   id: string
@@ -13,6 +12,7 @@ interface Content {
   type: string
   heroImage: string | null
   createdAt: string
+  articleCount?: number
   author: {
     name: string
   }
@@ -52,6 +52,12 @@ export default function HomePage() {
         return `/gallery/${slug}`
       case 'thread':
         return `/threads/${slug}`
+      case 'collection':
+        return `/collection/${slug}`
+      case 'open_call':
+        return `/open-call/${slug}`
+      case 'trip':
+        return `/trip/${slug}`
       default:
         return `/article/${slug}`
     }
@@ -76,18 +82,31 @@ export default function HomePage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  // Prepare items for HoneycombGrid
-  const honeycombItems = contents.map((content) => (
-    <HexCard
-      key={content.id}
-      title={content.title}
-      author={content.author.name}
-      date={formatDate(content.createdAt)}
-      type={content.type}
-      image={getHeroImage(content)}
-      href={getPath(content.type, content.slug)}
-    />
-  ))
+  // Prepare content data for HoneycombGrid
+  // 4 mock cards will create 1 full row (component adds 5th card automatically per row)
+  const mockCardsForGrid = Array(4).fill(null).map((_, i) => ({
+    id: `grid-mock-${i}`,
+    title: '',
+    author: '',
+    date: '',
+    type: 'mock',
+    image: null,
+    href: '#',
+  }))
+
+  const honeycombContents = [
+    ...mockCardsForGrid,
+    ...contents.map((content) => ({
+      id: content.id,
+      title: content.title,
+      author: content.author.name,
+      date: formatDate(content.createdAt),
+      type: content.type,
+      image: getHeroImage(content),
+      href: getPath(content.type, content.slug),
+      articleCount: content.articleCount
+    }))
+  ]
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
@@ -96,9 +115,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between gap-10">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 shrink-0">
-              <div className="w-7 h-7 bg-[#D4AF37] rounded"></div>
-              <span className="text-base font-medium">Trace of The Tide</span>
+            <Link href="/" className="flex items-center shrink-0">
+              <img src="/Brand.svg" alt="Trace of The Tide" className="h-8" />
             </Link>
 
             {/* Desktop Navigation */}
@@ -202,37 +220,69 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-20 px-6 lg:px-40 bg-gradient-to-b from-[#171717] to-transparent">
-        <div className="flex flex-col gap-6 items-start max-w-[680px]">
-          <div className="flex flex-col gap-4">
-            <h1 className="text-[48px] leading-[56px] font-['IBM_Plex_Sans',sans-serif] font-medium" style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.24)' }}>
-              Trace <span className="text-[40px] leading-[48px] text-neutral-400">The Living Archive</span>
+      <section className="relative overflow-visible pointer-events-none">
+        {/* Background hexagon pattern - decorative mock hexagons */}
+        <div className="absolute top-0 left-0 right-0 -z-20 opacity-30" style={{ filter: 'blur(8px)' }}>
+          <HoneycombGridSVG
+            contents={Array(10).fill(null).map((_, i) => ({
+              id: `hero-bg-${i}`,
+              title: '',
+              author: '',
+              date: '',
+              type: 'mock',
+              image: null,
+              href: '#',
+            }))}
+            hexSize={550}
+            gap={1}
+          />
+        </div>
+
+        {/* Blur gradient overlay - pronounced gradient from top to bottom */}
+        <div
+          className="absolute top-0 left-0 right-0 h-full pointer-events-none z-0"
+          style={{
+            backdropFilter: 'blur(12px)',
+            background: 'linear-gradient(to bottom, rgba(10,10,10,0.98) 0%, rgba(10,10,10,0.85) 30%, rgba(10,10,10,0.5) 60%, rgba(10,10,10,0.2) 80%, transparent 100%)'
+          }}
+        />
+
+        <div className="relative z-10 flex flex-col gap-6 items-start pt-40 pb-20 px-6 lg:px-[156px] w-full pointer-events-auto">
+          <div className="flex flex-col gap-4 w-full text-white">
+            <h1 className="font-['IBM_Plex_Sans',sans-serif] font-medium max-w-[680px]" style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.24)' }}>
+              <span className="text-[48px] leading-[56px]">Trace </span>
+              <span className="text-[40px] leading-[48px] text-neutral-400">The Living Archive</span>
             </h1>
-            <p className="text-base leading-6 text-white tracking-[-0.16px]" style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.24)' }}>
+            <p className="font-['Inter',sans-serif] font-normal text-base leading-6 tracking-[-0.16px] max-w-[680px] whitespace-pre-wrap" style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.24)' }}>
               We practice knowledge like tending the land: digging, planting, waiting. Culture lives and breathes with us, passed down like stories. Art is an architecture of the senses, built on feeling and instinct. From this rhythm, Trace of the Tide emerges — a community of creation, knowledge, and transformation. A living current between art and thought, culture and creation, the human and more-than-human.
             </p>
           </div>
-          <button className="px-4 py-2 bg-[#C9A96E] text-[#332217] rounded-lg hover:bg-[#D4AF37] transition-colors text-sm font-medium shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.4)]">
-            Call to Action
+          <button className="relative flex items-center justify-center bg-[#C9A96E] text-[#332217] rounded-lg px-3 py-2 overflow-hidden hover:bg-[#D4AF37] transition-colors">
+            <div className="flex items-center justify-center gap-2 px-1 py-0.5">
+              <span className="font-['Inter',sans-serif] font-medium text-sm leading-5 tracking-[-0.07px] text-center">
+                Call to Action
+              </span>
+            </div>
+            <div className="absolute inset-0 pointer-events-none shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.4)]" />
           </button>
         </div>
       </section>
 
-      {/* Hexagonal Card Grid */}
-      <section className="pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
+      {/* Hexagonal Card Grid - starts behind hero with negative margin */}
+      <section className="-mt-[400px] pb-20 px-6 relative z-0">
+        <div className="">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <HoneycombGrid items={honeycombItems} hexSize={280} gap={15} />
+            <HoneycombGridSVG contents={honeycombContents} hexSize={550} gap={1} />
           )}
         </div>
       </section>
 
       {/* Share Your Story Section */}
-      <section className="py-20 px-6 bg-neutral-900/50">
+      <section className="py-20 px-6 bg-[#171717]">
         <div className="max-w-3xl mx-auto text-center">
           <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-neutral-800 rounded-full">
             <svg className="w-8 h-8 text-[#D4AF37]" fill="none" viewBox="0 0 24 24" stroke="currentColor">

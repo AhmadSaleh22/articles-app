@@ -51,7 +51,7 @@ export async function GET(
         content: content.content,
         createdAt: content.createdAt.toISOString(),
         updatedAt: content.updatedAt.toISOString(),
-        author: {
+        author: content.author ? {
           id: content.author.id,
           name: `${content.author.firstName} ${content.author.lastName}`.trim() || 'Anonymous',
           firstName: content.author.firstName,
@@ -59,6 +59,14 @@ export async function GET(
           email: content.author.email,
           avatar: content.author.avatar,
           bio: content.author.bio,
+        } : {
+          id: '',
+          name: 'Anonymous',
+          firstName: '',
+          lastName: '',
+          email: '',
+          avatar: null,
+          bio: null,
         },
       },
     })

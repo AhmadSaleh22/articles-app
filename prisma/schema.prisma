@@ -321,11 +321,19 @@ model Trip {
   title           String
   slug            String        @unique
   description     String?
+  content         String?       // JSON content for detailed description
   coverImage      String?
+  heroImage       String?       // Alias for consistency
   location        String?
   coordinates     String?       // JSON: { lat, lng }
   startDate       DateTime?
   endDate         DateTime?
+  price           Float?        // Trip price
+  groupSize       String?       // e.g., "6-12 people"
+  duration        String?       // e.g., "4 nights, 3 days"
+  languages       String?       // e.g., "English, Arabic"
+  highlights      String?       // JSON array of highlights
+  status          String        @default("draft") // draft, published, archived
   order           Int           @default(0)
   isActive        Boolean       @default(true)
   createdAt       DateTime      @default(now())
@@ -339,6 +347,9 @@ model Trip {
   category        Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   articles        TripArticle[]
+
+  @@index([slug])
+  @@index([status])
 }
 
 model TripArticle {
@@ -452,16 +463,24 @@ model Submission {
 }
 
 model OpenCall {
-  id          String       @id @default(uuid())
-  title       String
-  description String
+  id           String       @id @default(uuid())
+  title        String
+  slug         String       @unique
+  description  String
+  content      String?      // JSON content for detailed description
   requirements String?
-  deadline    DateTime?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  deadline     DateTime?
+  heroImage    String?      // Cover image
+  status       String       @default("draft") // draft, published, archived
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  publishedAt  DateTime?
 
-  submissions Submission[]
+  submissions  Submission[]
+
+  @@index([slug])
+  @@index([status])
 }
 
 // ============================================

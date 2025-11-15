@@ -38,7 +38,10 @@
       "Bash(npm install react-honeycomb)",
       "Bash(npm install:*)",
       "Bash(lsof:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(tee:*)",
+      "Bash(vercel link:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_9XpbN2ZjonMQ@ep-summer-block-a4nhlof0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx tsx -e:*)"
     ],
     "deny": [],
     "ask": []

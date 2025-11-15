@@ -2,6 +2,7 @@
 
 import { UserPlus, Gift, PenLine, Menu } from 'lucide-react'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -71,12 +72,12 @@ export function Navbar() {
         </a>
 
         <div className="flex items-center gap-2">
-          <button className="bg-neutral-800 px-3 py-1.5 rounded-md text-sm text-white hover:bg-neutral-700 transition-colors">
+          <Link href="/auth/login" className="bg-neutral-800 px-3 py-1.5 rounded-md text-sm text-white hover:bg-neutral-700 transition-colors">
             Login
-          </button>
-          <button className="bg-[#C9A96E] px-3 py-1.5 rounded-md text-sm text-[#332217] font-medium hover:bg-[#B89858] transition-colors shadow-inner shadow-white/40">
+          </Link>
+          <Link href="/auth/signup" className="bg-[#C9A96E] px-3 py-1.5 rounded-md text-sm text-[#332217] font-medium hover:bg-[#B89858] transition-colors shadow-inner shadow-white/40">
             Sign up
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -100,12 +101,12 @@ export function Navbar() {
           </a>
           <div className="h-px bg-white/12 my-2" />
           <div className="flex gap-2">
-            <button className="flex-1 bg-neutral-800 px-3 py-2 rounded-md text-sm text-white">
+            <Link href="/auth/login" className="flex-1 bg-neutral-800 px-3 py-2 rounded-md text-sm text-white text-center">
               Login
-            </button>
-            <button className="flex-1 bg-[#C9A96E] px-3 py-2 rounded-md text-sm text-[#332217] font-medium">
+            </Link>
+            <Link href="/auth/signup" className="flex-1 bg-[#C9A96E] px-3 py-2 rounded-md text-sm text-[#332217] font-medium text-center">
               Sign up
-            </button>
+            </Link>
           </div>
         </div>
       )}

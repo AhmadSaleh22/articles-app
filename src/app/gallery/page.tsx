@@ -144,7 +144,7 @@ export default function GalleryPage() {
       default:
         return null
     }
-  }).filter(Boolean)
+  }).filter((block): block is NonNullable<typeof block> => block !== null)
 
   // Calculate reading time
   const wordCount = parsedBlocks

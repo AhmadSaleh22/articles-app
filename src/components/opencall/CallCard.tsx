@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Clock } from 'lucide-react'
 
 interface CallCardProps {
@@ -9,6 +10,7 @@ interface CallCardProps {
   description: string
   buttonText?: string
   imageUrl?: string
+  slug?: string
   onJoin?: () => void
 }
 
@@ -19,9 +21,10 @@ export function CallCard({
   description,
   buttonText = 'Join now!',
   imageUrl,
+  slug,
   onJoin,
 }: CallCardProps) {
-  return (
+  const content = (
     <div className="relative w-full max-w-[360px] h-[386px] bg-neutral-900 rounded-2xl p-6 flex flex-col items-center gap-6">
       {/* Hexagonal Image */}
       <div className="w-[140px] h-[150px] flex items-center justify-center">
@@ -74,12 +77,31 @@ export function CallCard({
       </div>
 
       {/* Button */}
-      <button
-        onClick={onJoin}
-        className="bg-[#C9A96E] px-3 py-1.5 rounded-md text-sm font-medium text-[#332217] hover:bg-[#B89858] transition-colors shadow-inner shadow-white/40"
-      >
-        {buttonText}
-      </button>
+      {slug ? (
+        <Link
+          href={`/open-call/${slug}`}
+          className="bg-[#C9A96E] px-3 py-1.5 rounded-md text-sm font-medium text-[#332217] hover:bg-[#B89858] transition-colors shadow-inner shadow-white/40"
+        >
+          {buttonText}
+        </Link>
+      ) : (
+        <button
+          onClick={onJoin}
+          className="bg-[#C9A96E] px-3 py-1.5 rounded-md text-sm font-medium text-[#332217] hover:bg-[#B89858] transition-colors shadow-inner shadow-white/40"
+        >
+          {buttonText}
+        </button>
+      )}
     </div>
   )
+
+  if (slug) {
+    return (
+      <Link href={`/open-call/${slug}`} className="block hover:scale-[1.02] transition-transform">
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }

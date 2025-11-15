@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { defineHex, Grid, rectangle } from 'honeycomb-grid'
+import { defineHex, Grid, rectangle, Orientation } from 'honeycomb-grid'
 
 const GridContainer = styled.div`
   width: 100%;
@@ -43,7 +43,7 @@ export default function HoneycombGrid({ items, hexSize = 280, gap = 10 }: Honeyc
     // Define a hexagon with the honeycomb-grid library
     const Hex = defineHex({
       dimensions: hexSize,
-      orientation: 'pointy'
+      orientation: Orientation.POINTY
     })
 
     // Calculate grid dimensions based on number of items

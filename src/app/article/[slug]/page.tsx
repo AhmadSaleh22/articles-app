@@ -150,7 +150,7 @@ export default function ArticleSlugPage({ params }: { params: Promise<{ slug: st
       default:
         return null
     }
-  }).filter(Boolean)
+  }).filter((block): block is NonNullable<typeof block> => block !== null)
 
   // Calculate reading time (rough estimate: 200 words per minute)
   const wordCount = parsedBlocks

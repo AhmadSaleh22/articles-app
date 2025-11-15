@@ -9,7 +9,6 @@ interface CardProps {
 export function Card({ title, articleCount = 12, imageUrl }: CardProps) {
   return (
     <div className="relative w-[360px] h-[435px] flex items-center justify-center group">
-      {/* Hexagonal background */}
       <div className="absolute inset-0">
         <svg
           width="360"
@@ -27,7 +26,6 @@ export function Card({ title, articleCount = 12, imageUrl }: CardProps) {
         </svg>
       </div>
 
-      {/* Top hexagonal decoration */}
       <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[312px] h-[81px]">
         <svg
           width="312"
@@ -42,8 +40,6 @@ export function Card({ title, articleCount = 12, imageUrl }: CardProps) {
           />
         </svg>
       </div>
-
-      {/* Card content container with hexagonal mask */}
       <div className="relative w-[328px] h-[399px]">
         <div
           className="absolute inset-0 overflow-hidden"
@@ -51,7 +47,6 @@ export function Card({ title, articleCount = 12, imageUrl }: CardProps) {
             clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
           }}
         >
-          {/* Image */}
           {imageUrl && (
             <img
               src={imageUrl}
@@ -60,15 +55,12 @@ export function Card({ title, articleCount = 12, imageUrl }: CardProps) {
             />
           )}
 
-          {/* Gradient overlay at bottom */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-900 flex flex-col items-center justify-end px-6 py-10 backdrop-blur-sm">
             <div className="flex flex-col gap-4 items-center">
-              {/* Title */}
               <h3 className="text-xl font-['IBM_Plex_Sans'] font-medium text-white text-center leading-7 drop-shadow-md line-clamp-2">
                 {title}
               </h3>
 
-              {/* Label */}
               <div className="flex items-center backdrop-blur-md bg-neutral-900/80 rounded-full overflow-hidden">
                 <div className="h-6 w-2 bg-gradient-to-r from-transparent to-neutral-900/80" />
                 <span className="px-3 py-1 text-xs font-medium text-white">
@@ -79,7 +71,6 @@ export function Card({ title, articleCount = 12, imageUrl }: CardProps) {
             </div>
           </div>
 
-          {/* Border stroke */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
