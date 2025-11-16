@@ -6,9 +6,10 @@ import { authOptions } from '@/lib/auth'
 // GET - Fetch a single submission
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
@@ -30,7 +31,7 @@ export async function GET(
     }
 
     const submission = await prisma.submission.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -78,9 +79,10 @@ export async function GET(
 // PATCH - Update submission (admin can update status, user can update their own submission)
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
@@ -102,7 +104,7 @@ export async function PATCH(
     }
 
     const submission = await prisma.submission.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!submission) {
@@ -150,7 +152,7 @@ export async function PATCH(
     }
 
     const updatedSubmission = await prisma.submission.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         user: {
@@ -184,9 +186,10 @@ export async function PATCH(
 // DELETE - Delete submission (only owner or admin)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
@@ -208,7 +211,7 @@ export async function DELETE(
     }
 
     const submission = await prisma.submission.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!submission) {
@@ -230,7 +233,7 @@ export async function DELETE(
     }
 
     await prisma.submission.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Submission deleted successfully' })
