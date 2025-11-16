@@ -210,7 +210,7 @@ export default function HoneycombGridSVG({ contents, hexSize = 280, gap = 15 }: 
               <g key={content.id}>
                 {/* Hexagon polygon border */}
                 <polygon
-                  points={hex.corners.map(c => `${hex.x + c.x},${hex.y + c.y}`).join(' ')}
+                  points={hex.corners.map((c: any) => `${hex.x + c.x},${hex.y + c.y}`).join(' ')}
                   fill="none"
                   stroke="#888"
                   strokeWidth="4"
