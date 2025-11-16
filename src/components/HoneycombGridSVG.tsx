@@ -135,8 +135,8 @@ export default function HoneycombGridSVG({ contents, hexSize = 280, gap = 15 }: 
     })
 
     // Calculate bounds
-    const allX = hexes.flatMap(h => h.corners.map(c => h.x + c.x))
-    const allY = hexes.flatMap(h => h.corners.map(c => h.y + c.y))
+    const allX = hexes.flatMap(h => h.corners.map((c: any) => h.x + c.x))
+    const allY = hexes.flatMap(h => h.corners.map((c: any) => h.y + c.y))
 
     const minX = Math.min(...allX)
     const minY = Math.min(...allY)
