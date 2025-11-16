@@ -226,7 +226,6 @@ export default function HoneycombGridSVG({ contents, hexSize = 280, gap = 15 }: 
                   style={{ overflow: 'visible' }}
                 >
                   <div
-                    xmlns="http://www.w3.org/1999/xhtml"
                     style={{
                       width: '100%',
                       height: '100%',
