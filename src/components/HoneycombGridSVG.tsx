@@ -272,7 +272,7 @@ export default function HoneycombGridSVG({ contents, hexSize = 280, gap = 15 }: 
                         {/* Background Image or gradient */}
                         {shouldShowImage ? (
                           <img
-                            src={content.image}
+                            src={content.image || ''}
                             alt={content.title}
                             style={{
                               position: 'absolute',
