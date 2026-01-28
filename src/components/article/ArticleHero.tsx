@@ -67,7 +67,7 @@ export function ArticleHero({ imageUrl, galleryImages, videoUrl, audioUrl, audio
       {videoUrl ? (
         /* Video Player */
         <VideoPlayer videoUrl={videoUrl} posterUrl={imageUrl} className="absolute inset-0" />
-      ) : (
+      ) : imageUrl ? (
         <>
           {/* Background Image */}
           <img
@@ -79,6 +79,9 @@ export function ArticleHero({ imageUrl, galleryImages, videoUrl, audioUrl, audio
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         </>
+      ) : (
+        /* Placeholder when no image */
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900" />
       )}
 
       {/* Breadcrumbs */}

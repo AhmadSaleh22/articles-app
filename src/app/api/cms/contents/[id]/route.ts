@@ -34,11 +34,26 @@ export async function GET(
         id: true,
         title: true,
         type: true,
+        excerpt: true,
         heroImage: true,
+        heroVideo: true,
+        heroAudio: true,
         content: true,
         status: true,
+        metaTitle: true,
+        metaDescription: true,
+        categoryId: true,
         createdAt: true,
         updatedAt: true,
+        tags: {
+          select: {
+            tag: {
+              select: {
+                name: true,
+              }
+            }
+          }
+        }
       },
     })
 
@@ -95,9 +110,15 @@ export async function GET(
       // If content is not JSON, ignore
     }
 
+    // Extract tag names if article has tags
+    const tagNames = 'tags' in content && Array.isArray(content.tags)
+      ? content.tags.map((t: { tag: { name: string } }) => t.tag.name)
+      : []
+
     return NextResponse.json({
       ...content,
       blocks,
+      tags: tagNames,
       createdAt: content.createdAt.toISOString(),
       updatedAt: content.updatedAt.toISOString(),
     })
@@ -129,10 +150,53 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { type, title, heroImage, blocks, status } = body
+    const { 
+      type, 
+      title, 
+      heroImage,
+      heroVideo,
+      heroAudio,
+      blocks, 
+      status,
+      categoryId,
+      category, // Category name (will be converted to ID)
+      tags,
+      metaTitle,
+      metaDescription,
+      excerpt
+    } = body
 
     // Create content JSON from blocks
     const contentJSON = JSON.stringify({ blocks })
+
+    // Resolve category ID from name or ID
+    let resolvedCategoryId: string | null = null
+    if (categoryId) {
+      // If categoryId is provided, use it directly
+      resolvedCategoryId = categoryId
+    } else if (category && typeof category === 'string' && category.trim()) {
+      // Try to find category by name or create it
+      const existingCategory = await prisma.category.findFirst({
+        where: { 
+          OR: [
+            { name: { equals: category, mode: 'insensitive' } },
+            { slug: generateSlug(category) }
+          ]
+        }
+      })
+      if (existingCategory) {
+        resolvedCategoryId = existingCategory.id
+      } else {
+        // Create new category
+        const newCategory = await prisma.category.create({
+          data: {
+            name: category,
+            slug: generateSlug(category),
+          }
+        })
+        resolvedCategoryId = newCategory.id
+      }
+    }
 
     // Generate slug from title
     const baseSlug = generateSlug(title || 'Untitled')
@@ -151,7 +215,7 @@ export async function POST(
         data: {
           title: title || 'Untitled',
           slug,
-          description: title || 'Untitled', // Use title as description if not provided
+          description: excerpt || title || 'Untitled',
           content: contentJSON,
           heroImage,
           status: status || 'draft',
@@ -175,11 +239,12 @@ export async function POST(
         data: {
           title: title || 'Untitled',
           slug,
-          description: title || 'Untitled', // Use title as description if not provided
+          description: excerpt || title || 'Untitled',
           content: contentJSON,
           heroImage,
           status: status || 'draft',
           authorId: user.id,
+          categoryId: resolvedCategoryId,
         },
       })
 
@@ -196,17 +261,53 @@ export async function POST(
       counter++
     }
 
+    // Create article with all fields
     const article = await prisma.article.create({
       data: {
         title: title || 'Untitled',
         slug,
         type: type || 'standard',
-        heroImage,
+        excerpt: excerpt || null,
+        heroImage: heroImage || null,
+        heroVideo: heroVideo || null,
+        heroAudio: heroAudio || null,
         content: contentJSON,
         status: status || 'draft',
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
         authorId: user.id,
+        categoryId: resolvedCategoryId,
+        publishedAt: status === 'published' ? new Date() : null,
       },
     })
+
+    // Handle tags if provided
+    if (tags && Array.isArray(tags) && tags.length > 0) {
+      for (const tagName of tags) {
+        // Find or create tag
+        let tag = await prisma.tag.findUnique({
+          where: { name: tagName }
+        })
+        
+        if (!tag) {
+          const tagSlug = generateSlug(tagName)
+          tag = await prisma.tag.create({
+            data: {
+              name: tagName,
+              slug: tagSlug,
+            }
+          })
+        }
+
+        // Create article-tag relation
+        await prisma.articleTag.create({
+          data: {
+            articleId: article.id,
+            tagId: tag.id,
+          }
+        })
+      }
+    }
 
     return NextResponse.json({
       id: article.id,
@@ -232,10 +333,50 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { type, title, heroImage, blocks, status } = body
+    const { 
+      type, 
+      title, 
+      heroImage,
+      heroVideo,
+      heroAudio,
+      blocks, 
+      status,
+      categoryId,
+      category, // Category name (will be converted to ID)
+      tags,
+      metaTitle,
+      metaDescription,
+      excerpt
+    } = body
 
     // Create content JSON from blocks
     const contentJSON = JSON.stringify({ blocks })
+
+    // Resolve category ID from name or ID
+    let resolvedCategoryId: string | null = null
+    if (categoryId) {
+      resolvedCategoryId = categoryId
+    } else if (category && typeof category === 'string' && category.trim()) {
+      const existingCategory = await prisma.category.findFirst({
+        where: { 
+          OR: [
+            { name: { equals: category, mode: 'insensitive' } },
+            { slug: generateSlug(category) }
+          ]
+        }
+      })
+      if (existingCategory) {
+        resolvedCategoryId = existingCategory.id
+      } else {
+        const newCategory = await prisma.category.create({
+          data: {
+            name: category,
+            slug: generateSlug(category),
+          }
+        })
+        resolvedCategoryId = newCategory.id
+      }
+    }
 
     // Handle OpenCall update
     if (type === 'open_call') {
@@ -355,11 +496,50 @@ export async function PUT(
         title: title || 'Untitled',
         slug,
         type: type || 'standard',
-        heroImage,
+        excerpt: excerpt || null,
+        heroImage: heroImage || null,
+        heroVideo: heroVideo || null,
+        heroAudio: heroAudio || null,
         content: contentJSON,
         status: status || 'draft',
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
+        categoryId: resolvedCategoryId,
+        publishedAt: status === 'published' && !currentArticle.publishedAt ? new Date() : currentArticle.publishedAt,
       },
     })
+
+    // Handle tags if provided - first remove existing, then add new
+    if (tags && Array.isArray(tags)) {
+      // Remove existing tags
+      await prisma.articleTag.deleteMany({
+        where: { articleId: article.id }
+      })
+
+      // Add new tags
+      for (const tagName of tags) {
+        let tag = await prisma.tag.findUnique({
+          where: { name: tagName }
+        })
+        
+        if (!tag) {
+          const tagSlug = generateSlug(tagName)
+          tag = await prisma.tag.create({
+            data: {
+              name: tagName,
+              slug: tagSlug,
+            }
+          })
+        }
+
+        await prisma.articleTag.create({
+          data: {
+            articleId: article.id,
+            tagId: tag.id,
+          }
+        })
+      }
+    }
 
     return NextResponse.json({
       id: article.id,

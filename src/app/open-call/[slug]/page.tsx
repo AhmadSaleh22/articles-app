@@ -1,222 +1,311 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Calendar, Clock, AlertCircle } from 'lucide-react'
-import { Navbar } from '@/components/homepage/Navbar'
-import { ShareStory } from '@/components/homepage/ShareStory'
-import { Footer } from '@/components/homepage/Footer'
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Header } from "../../components/header"
+import { Footer } from "../../components/footer"
+import { Calendar, Users, FileText, Clock, ArrowLeft } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 
-interface OpenCallData {
+interface OpenCallDetail {
   id: string
   title: string
   slug: string
   description: string
   content?: string
   requirements?: string
-  deadline?: string
   heroImage?: string
+  deadline?: string
   status: string
   createdAt: string
+  updatedAt: string
+  publishedAt?: string
 }
 
 export default function OpenCallDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [openCall, setOpenCall] = useState<OpenCallData | null>(null)
+  const slug = params.slug as string
+
+  const [openCall, setOpenCall] = useState<OpenCallDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
 
   useEffect(() => {
     const fetchOpenCall = async () => {
       try {
-        const response = await fetch(`/api/open-calls/${params.slug}`)
-        if (!response.ok) {
-          throw new Error('Open call not found')
+        const response = await fetch(`/api/open-calls/${slug}`)
+        if (response.ok) {
+          const data = await response.json()
+          setOpenCall(data)
+        } else if (response.status === 404) {
+          setError("Open call not found")
+        } else {
+          setError("Failed to load open call")
         }
-        const data = await response.json()
-        setOpenCall(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load open call')
+        console.error("Error fetching open call:", err)
+        setError("An error occurred while loading the open call")
       } finally {
         setLoading(false)
       }
     }
 
-    if (params.slug) {
+    if (slug) {
       fetchOpenCall()
     }
-  }, [params.slug])
+  }, [slug])
+
+  const getDaysRemaining = (endDate: string) => {
+    const end = new Date(endDate)
+    const now = new Date()
+    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    return diff > 0 ? diff : 0
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-900">
-        <div className="fixed inset-0 bg-gradient-to-b from-black via-neutral-900 to-black -z-10" />
-        <div className="sticky top-0 z-50">
-          <Navbar />
-        </div>
+      <main className="bg-black min-h-screen">
+        <Header />
         <div className="flex items-center justify-center py-40">
-          <div className="w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-[#C9A961] border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </div>
+        <Footer />
+      </main>
     )
   }
 
   if (error || !openCall) {
     return (
-      <div className="min-h-screen bg-neutral-900">
-        <div className="fixed inset-0 bg-gradient-to-b from-black via-neutral-900 to-black -z-10" />
-        <div className="sticky top-0 z-50">
-          <Navbar />
-        </div>
-        <div className="flex items-center justify-center py-40">
-          <div className="text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white mb-2">Open Call Not Found</h1>
-            <p className="text-neutral-400 mb-6">{error || 'This open call does not exist.'}</p>
-            <Link href="/open-call" className="px-6 py-3 bg-[#D4AF37] text-black rounded-lg hover:bg-[#C9A96E] transition-colors">
-              Back to Open Calls
-            </Link>
-          </div>
+      <main className="bg-black min-h-screen">
+        <Header />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <h1 className="text-4xl text-white mb-4">{error || "Open Call Not Found"}</h1>
+          <Link href="/open-call" className="text-[#C9A961] hover:underline">
+            Back to Open Calls
+          </Link>
         </div>
         <Footer />
-      </div>
+      </main>
     )
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-  }
-
-  const isDeadlinePassed = openCall.deadline && new Date(openCall.deadline) < new Date()
+  const daysRemaining = openCall.deadline ? getDaysRemaining(openCall.deadline) : null
+  const isActive = openCall.status === "PUBLISHED" && (!openCall.deadline || new Date(openCall.deadline) > new Date())
+  const contentTypes = ["Article", "Document", "Image", "Audio", "Video"]
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white">
-      {/* Background */}
-      <div className="fixed inset-0 bg-gradient-to-b from-black via-neutral-900 to-black -z-10" />
+    <main className="bg-black">
+      <Header />
 
-      {/* Navbar */}
-      <div className="sticky top-0 z-50">
-        <Navbar />
-      </div>
-
-      {/* Hero Section */}
-      {openCall.heroImage && (
-        <div className="relative h-96 w-full">
-          <img
-            src={openCall.heroImage}
-            alt={openCall.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 to-transparent"></div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 md:px-20 lg:px-40 py-12">
-        <div className="mb-8">
-          <Link href="/open-call" className="text-[#D4AF37] hover:underline mb-4 inline-block">
-            ← Back to Open Calls
-          </Link>
-
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 bg-[#D4AF37] text-black text-sm font-semibold rounded-full">
-              OPEN CALL
-            </span>
-            {isDeadlinePassed && (
-              <span className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded-full">
-                CLOSED
-              </span>
-            )}
-            {!isDeadlinePassed && openCall.deadline && (
-              <span className="px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-full">
-                ACTIVE
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">{openCall.title}</h1>
-
-          <div className="flex flex-wrap gap-6 text-neutral-400 mb-8">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              <span>Posted {formatDate(openCall.createdAt)}</span>
-            </div>
-            {openCall.deadline && (
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                <span className={isDeadlinePassed ? 'text-red-500' : ''}>
-                  Deadline: {formatDate(openCall.deadline)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <p className="text-xl text-neutral-300 mb-8">{openCall.description}</p>
-        </div>
-
-        {/* Main Content */}
-        {openCall.content && (() => {
-          try {
-            const contentData = JSON.parse(openCall.content)
-            const blocks = contentData.blocks || []
-
-            if (blocks.length === 0) return null
-
-            return (
-              <div className="mb-12 prose prose-invert max-w-none">
-                {blocks.map((block: any) => {
-                  if (block.type === 'text') {
-                    return (
-                      <p key={block.id} className="text-neutral-300 text-lg leading-relaxed mb-4">
-                        {block.content?.text || ''}
-                      </p>
-                    )
-                  }
-                  return null
-                })}
-              </div>
-            )
-          } catch (e) {
-            return null
-          }
-        })()}
-
-        {/* Requirements */}
-        {openCall.requirements && (
-          <div className="mb-12 bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Requirements</h2>
-            <div className="text-neutral-300">
-              {openCall.requirements}
-            </div>
+      {/* Hero Section with Cover Image */}
+      <section className="relative h-96 overflow-hidden">
+        {openCall.heroImage && (
+          <div className="absolute inset-0">
+            <Image
+              src={openCall.heroImage}
+              alt={openCall.title}
+              fill
+              className="object-cover opacity-40"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
           </div>
         )}
 
-        {/* CTA */}
-        {!isDeadlinePassed && (
-          <div className="text-center py-12 bg-neutral-800/50 rounded-lg border border-neutral-700">
-            <h3 className="text-2xl font-bold mb-4">Ready to Contribute?</h3>
-            <p className="text-neutral-300 mb-6">
-              Join us and be part of this exciting opportunity
-            </p>
-            <Link
-              href={`/join?openCallId=${openCall.id}`}
-              className="inline-block px-8 py-3 bg-[#C9A96E] text-[#332217] rounded-lg hover:bg-[#D4AF37] transition-colors font-semibold shadow-inner shadow-white/40"
+        <div className="relative container mx-auto px-4 h-full flex flex-col justify-end pb-12">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Open Calls</span>
+          </button>
+
+          {/* Status Badge */}
+          <div className="mb-4">
+            <span
+              className={`px-4 py-2 text-sm font-medium rounded-full border ${
+                isActive
+                  ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                  : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+              }`}
             >
-              Join Now
-            </Link>
+              {isActive ? "Active" : "Closed"}
+            </span>
           </div>
-        )}
-      </div>
 
-      {/* Share Your Story Section */}
-      <ShareStory />
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            {openCall.title}
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl">
+            {openCall.description}
+          </p>
+        </div>
+      </section>
 
-      {/* Footer */}
+      {/* Main Content */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Left Column - Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* About Section */}
+              <div className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-8">
+                <h2 className="text-3xl font-bold text-white mb-6">About This Call</h2>
+                <div className="space-y-4 text-gray-300 leading-relaxed">
+                  <p>{openCall.description}</p>
+                  <p>
+                    We are collecting stories, testimonies, documents, and materials that help preserve
+                    the collective memory of Palestinian communities. Your contribution matters in building
+                    a comprehensive archive for future generations.
+                  </p>
+                  <p>
+                    This is a collaborative effort to document history, culture, and lived experiences.
+                    Join us in creating a living archive that honors the past and informs the future.
+                  </p>
+                </div>
+              </div>
+
+              {/* What We're Looking For */}
+              <div className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-8">
+                <h2 className="text-3xl font-bold text-white mb-6">What We&apos;re Looking For</h2>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-3">
+                    {contentTypes.map((type) => (
+                      <span
+                        key={type}
+                        className="px-4 py-2 bg-[#C9A961]/10 text-[#C9A961] rounded-lg border border-[#C9A961]/30 text-sm font-medium"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-gray-400 mt-4">
+                    We welcome all forms of documentation including written accounts, photographs,
+                    video recordings, audio testimonies, and historical documents.
+                  </p>
+                </div>
+              </div>
+
+              {/* How to Participate */}
+              <div className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-8">
+                <h2 className="text-3xl font-bold text-white mb-6">How to Participate</h2>
+                <ol className="space-y-4 text-gray-300">
+                  <li className="flex gap-4">
+                    <span className="flex-shrink-0 w-8 h-8 bg-[#C9A961] text-black rounded-full flex items-center justify-center font-bold">
+                      1
+                    </span>
+                    <div>
+                      <strong className="text-white">Fill out the participation form</strong>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Provide your information and tell us about your contribution
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="flex-shrink-0 w-8 h-8 bg-[#C9A961] text-black rounded-full flex items-center justify-center font-bold">
+                      2
+                    </span>
+                    <div>
+                      <strong className="text-white">Upload your materials</strong>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Share your documents, photos, videos, or audio recordings
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="flex-shrink-0 w-8 h-8 bg-[#C9A961] text-black rounded-full flex items-center justify-center font-bold">
+                      3
+                    </span>
+                    <div>
+                      <strong className="text-white">Submit your contribution</strong>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Our team will review and include it in the archive
+                      </p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            {/* Right Column - Sidebar */}
+            <div className="space-y-6">
+              {/* Quick Stats */}
+              <div className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-bold text-white mb-6">Details</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-gray-300">
+                    <Users className="w-5 h-5 text-[#C9A961]" />
+                    <div>
+                      <p className="text-sm text-gray-500">Status</p>
+                      <p className="font-semibold">{isActive ? "Active" : "Closed"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-300">
+                    <FileText className="w-5 h-5 text-[#C9A961]" />
+                    <div>
+                      <p className="text-sm text-gray-500">Posted</p>
+                      <p className="font-semibold">
+                        {new Date(openCall.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  {openCall.deadline && (
+                    <>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <Calendar className="w-5 h-5 text-[#C9A961]" />
+                        <div>
+                          <p className="text-sm text-gray-500">Deadline</p>
+                          <p className="font-semibold">
+                            {new Date(openCall.deadline).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      {daysRemaining !== null && daysRemaining > 0 && (
+                        <div className="flex items-center gap-3 text-gray-300">
+                          <Clock className="w-5 h-5 text-[#C9A961]" />
+                          <div>
+                            <p className="text-sm text-gray-500">Time Remaining</p>
+                            <p className="font-semibold">{daysRemaining} days</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Organizer Info */}
+              <div className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-bold text-white mb-4">Organized By</h3>
+                <p className="text-gray-300">Trace of the Tides Archive</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Category: Historical Documentation
+                </p>
+              </div>
+
+              {/* CTA Button */}
+              <Link
+                href={`/open-call/${openCall.slug}/join`}
+                className="block w-full bg-[#C9A961] text-black text-center font-bold py-4 rounded-xl hover:bg-[#B89851] transition-colors shadow-lg"
+              >
+                Join This Call
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Footer />
-    </div>
+    </main>
   )
 }

@@ -7,7 +7,7 @@ import { Footer } from '@/components/homepage/Footer'
 import { PageHeader } from './PageHeader'
 import { SearchInput } from './SearchInput'
 import { FilterTabs } from './FilterTabs'
-import { CallCard } from './CallCard'
+import { OpenCallCard } from './OpenCallCard'
 
 interface OpenCallData {
   id: string
@@ -73,26 +73,26 @@ export function OpenCall() {
       </div>
 
       {/* Cards Grid */}
-      <div className="px-6 md:px-20 lg:px-40 py-8">
+      <div className="px-6 md:px-12 lg:px-16 py-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-[#C9A96E] border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : openCalls.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-neutral-400 text-lg">No active open calls at the moment.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center max-w-[1200px] mx-auto">
             {openCalls.map((call) => (
-              <CallCard
+              <OpenCallCard
                 key={call.id}
-                slug={call.slug}
                 title={call.title}
                 creator="Creator"
                 timeline={getTimeline(call.createdAt, call.deadline)}
                 description={call.description}
-                imageUrl={call.heroImage || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop&q=80"}
+                href={`/open-call/${call.slug}`}
+                image={call.heroImage}
               />
             ))}
           </div>

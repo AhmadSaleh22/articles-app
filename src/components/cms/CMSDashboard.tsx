@@ -199,10 +199,33 @@ export function CMSDashboard() {
     }
   }
 
-  if (status === 'loading' || loading) {
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login?callbackUrl=/cms')
+    }
+  }, [status, router])
+
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="w-8 h-8 border-4 border-[#C9A96E] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="text-white">Redirecting to login...</div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#C9A96E] border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
