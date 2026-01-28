@@ -28,7 +28,7 @@ export async function GET(
     }
 
     // Try to find in Article table first
-    let content = await prisma.article.findUnique({
+    const article = await prisma.article.findUnique({
       where: { id },
       select: {
         id: true,
@@ -56,6 +56,25 @@ export async function GET(
         }
       },
     })
+
+    // Use a flexible content object
+    let content: {
+      id: string
+      title: string
+      type: string
+      heroImage: string | null
+      content: string | null
+      status: string
+      createdAt: Date
+      updatedAt: Date
+      excerpt?: string | null
+      heroVideo?: string | null
+      heroAudio?: string | null
+      metaTitle?: string | null
+      metaDescription?: string | null
+      categoryId?: string | null
+      tags?: { tag: { name: string } }[]
+    } | null = article
 
     // If not found, try OpenCall table
     if (!content) {
